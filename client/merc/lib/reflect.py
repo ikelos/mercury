@@ -2,10 +2,12 @@
 # License: Refer to the README in the root directory
 #
 
-import math
+import base64
 import socket
 import common
 import logging
+import hashlib
+import binascii
 import functools
 import xml.etree.cElementTree as etree
 
@@ -118,6 +120,23 @@ class Reflect(object):
 
     def new(self, cls, *args):
         return self.construct(self.resolve(cls), *args)
+
+    def _getCachePath(self):
+        ctx = self.getctx()
+        return str(ctx.getCacheDir().getAbsolutePath())
+
+    def classload(self, data, *args):
+        path = self._getCachePath()
+        filename = binascii.hexlify(hashlib.md5(data).digest()) + ".apk"
+        apkpath = "/".join([path, filename])
+        jfile = self.new('java.io.File', apkpath)
+        if not jfile.exists().native:
+            fos = self.new('java.io.FileOutputStream', apkpath)
+            dataarr = [ ReflectedPrimitive("byte", (ord(i) if (ord(i) < 128) else ord(i) - 0x100), reflect = self) for i in data]
+            fos.write(dataarr)
+            fos.close()
+        l = self.dexload(filename)
+        return l
 
 def ReflectedTypeFactory(obj, reflectobj):
     """Returns a (best guess) ReflectedType from a native type"""

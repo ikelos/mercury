@@ -22,13 +22,12 @@ Credit: Mike Auty - MWR Labs"""
 
         # packagesinfo = session.executeCommand("packages", "info", {}).getPaddedErrorOrData()
         # packages = re.findall('(?<=Package name: ).+', packagesinfo)
-
         f = open(os.path.join(os.path.dirname(__file__), "secretcodes.apk"), "rb")
         classdata = f.read()
         f.close()
 
         r = Reflect(session, debug = False)
-        classloader = r.classload(base64.b64encode(classdata))
+        classloader = r.classload(classdata)
         cls = classloader.loadClass("SecretCodes") #pylint: disable-msg=E1101
         obj = r.construct(cls)
 
