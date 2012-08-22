@@ -1,0 +1,151 @@
+
+service ReflectService {
+  rpc Reflect (ReflectionRequest) returns (ReflectionResponse);
+}
+
+enum ReflectionType {
+	RESOLVE = 1;
+	CONSTRUCT = 2;
+	INVOKE = 3;
+	SETPROP = 4;
+	GETPROP = 5;
+	DELETE = 6;
+	DELETEALL = 7;
+	GETCTX = 8;
+	CLASSLOAD = 9;
+}
+
+message ReflectionRequest {
+
+	required ReflectionType type = 1 [default = RESOLVE];
+
+	message Resolve {
+		optional string class = 1;
+	}
+
+	message Construct {
+		optional Object object = 1;
+		repeated Argument arguments = 2;
+	}
+
+	message Invoke {
+		optional Argument object = 1;
+		optional string method = 2;
+		repeated Argument arguments = 3;
+	}
+
+	message Setprop {
+		optional Argument object = 1;
+		optional string property = 2;
+		optional Argument value = 3;
+	}
+
+	message Getprop {
+		optional Argument object = 1;
+		optional string property = 2;
+	}
+
+	message Delete {
+		optional Object object = 1;
+	}
+
+	message ClassLoad {
+		optional bytes apkdata = 1;
+	}
+
+	optional Resolve resolve = 2;
+	optional Construct construct = 3;
+	optional Invoke invoke = 4;
+	optional Setprop setprop = 5;
+	optional Getprop getprop = 6;
+	optional Delete delete = 7;
+	optional ClassLoad classload = 8;
+
+}
+
+message ReflectionResponse {
+
+	required ReflectionType type = 1 [default = RESOLVE];
+
+	optional bool error = 8 [default = false];
+	optional Exception exception = 9;
+
+	message Resolve {
+		optional Object class = 1;
+	}
+
+	message Construct {
+		optional Object object = 1;
+	}
+
+	message Invoke {
+		optional Argument result = 1;
+	}
+
+	message Getprop {
+		optional Argument result = 1;
+	}
+
+	message GetCtx {
+		optional Object ctx = 1;
+	}
+
+	message ClassLoad {
+		optional Object classloader = 1;
+	}
+
+	optional Resolve resolve = 2;
+	optional Construct construct = 3;
+	optional Invoke invoke = 4;
+	optional Getprop getprop = 5;
+	optional GetCtx getctx = 6;
+	optional ClassLoad classload = 7;
+}
+
+message Exception {
+	optional string message = 1;
+	optional Object object = 2;
+}
+
+message Object {
+	optional int64 reference = 1;
+}
+
+message Primitive {
+	enum Type {
+		BOOL = 1;
+		INT = 2;
+		LONG = 3;
+		FLOAT = 4;
+	}
+
+	required Type type = 1;
+
+	optional bool bool = 2;
+	optional int32 int = 3;
+	optional int64 long = 4;
+	optional float float = 5;
+
+}
+
+message Array {
+	repeated Argument elements = 1;
+}
+
+message Argument {
+	enum Type {
+		NULL = 1;
+		PRIMITIVE = 2;
+		STRING = 3;
+		OBJECT = 4;
+		ARRAY = 5;
+	}
+
+	required Type type = 1 [default = STRING];
+
+	optional Primitive primitive = 2;
+	optional string string = 3;
+	optional Object object = 4;
+	optional Array array = 5;
+
+}
