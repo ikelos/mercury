@@ -144,13 +144,14 @@ public class Reflector
 		return null;
 	}
 
-	private Class[] getParameterType(Object[] arguments)
+	private Class[] getParameterType(Object[] arguments) throws Exception
 	{
 		Class[] ret = new Class[arguments.length];
 		int i = 0;
 		// byte, short, int, long, float, double, boolean, char
 		for(Object arg : arguments) {
-			if(arg instanceof Integer) ret[i++] = Integer.TYPE;
+			if (arg == null) throw new Exception("Cannot return a parameter type for null.");
+			else if(arg instanceof Integer) ret[i++] = Integer.TYPE;
 			else if(arg instanceof Short) ret[i++] = Short.TYPE;
 			else if(arg instanceof Byte) ret[i++] = Byte.TYPE;
 			else if(arg instanceof Long) ret[i++] = Long.TYPE;
