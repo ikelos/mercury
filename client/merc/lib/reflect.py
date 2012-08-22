@@ -161,7 +161,17 @@ def ReflectedTypeFactory(obj, reflectobj):
 def ElementToReflectedType(elem, reflectobj):
     """Returns a ReflectedType from an XML element"""
     if elem.tag == 'primitive':
-        return ReflectedPrimitive(elem.get('type'), elem.text, reflect = reflectobj)
+        if elem.get('type') in ["float", "double"]:
+            native = float(elem.text)
+        elif elem.get('type') in ["int", "byte", "short"]:
+            native = int(elem.text)
+        elif elem.get('type') == "long":
+            native = long(elem.text)
+        elif elem.get('type') == "boolean":
+            native = (elem.text.lower() == "true")
+        else:
+            return None
+        return ReflectedPrimitive(elem.get('type'), native, reflect = reflectobj)
     elif elem.tag == 'string':
         return ReflectedString(elem.text, reflect = reflectobj)
     elif elem.tag == 'array':
