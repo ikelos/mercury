@@ -130,7 +130,7 @@ def ReflectedTypeFactory(obj, reflectobj):
     elif isinstance(obj, float):
         return ReflectedPrimitive("float", obj, reflect = reflectobj)
     elif isinstance(obj, bool):
-        return ReflectedPrimitive("bool", obj, reflect = reflectobj)
+        return ReflectedPrimitive("boolean", obj, reflect = reflectobj)
     elif isinstance(obj, str):
         return ReflectedString(obj, reflect = reflectobj)
     elif obj is None:
@@ -203,24 +203,24 @@ class ReflectedPrimitive(ReflectedType):
         self._native = native
 
     def _validate(self, primtype, native):
-        if primtype not in ['byte', 'short', 'int', 'long', 'float', 'double', 'bool', 'char']:
+        if primtype not in ['byte', 'short', 'int', 'long', 'float', 'double', 'boolean', 'char']:
             raise TypeError("Specified type (" + primtype + ") is not a Java primitive")
         if primtype == 'byte':
             if not isinstance(native, str) and native > 127 or native < -128:
                 raise TypeError("Byte type requires integer value between 127 and -128")
         elif primtype == 'short':
-            if not isinstance(native, int) and native < math.pow(2, 15) and native >= -(math.pow(2, 15)):
+            if not isinstance(native, int) and native < (2 ** 15) and native >= -(2 ** 15):
                 raise TypeError("Short type not an integer or outside bounds")
         elif primtype == 'int':
-            if not isinstance(native, int) and native < math.pow(2, 31) and native >= -(math.pow(2, 31)):
+            if not isinstance(native, int) and native < (2 ** 31) and native >= -(2 ** 31):
                 raise TypeError("Integer type not an integer or outside bounds")
         elif primtype == 'long':
-            if not isinstance(native, long) and native < math.pow(2, 63) and native >= -(math.pow(2, 63)):
+            if not isinstance(native, long) and native < 2 ** 63 and native >= -(2 ** 63):
                 raise TypeError("Long type not a long or outside bounds")
         elif primtype == 'float' or primtype == 'double':
             if not isinstance(native, float):
                 raise TypeError("Floating type not a float")
-        elif primtype == 'bool':
+        elif primtype == 'boolean':
             if not isinstance(native, bool):
                 raise TypeError("Bool type not a boolean")
         elif primtype == 'char':
