@@ -100,8 +100,8 @@ public class ReflectParser
 			return parseInvoke(node);
 		} else if(name.equals("getctx")) {
 			return parseGetCtx(node);
-		} else if(name.equals("classload")) {
-			return parseClassLoad(node);
+		} else if(name.equals("dexload")) {
+			return parseDexLoad(node);
 		} else {
 			throw new ParserException("action '"+name+"' not implemented.");
 		}
@@ -114,26 +114,15 @@ public class ReflectParser
 		return true;
 	}
 
-	private boolean parseClassLoad(Node action) throws Exception {
+	private boolean parseDexLoad(Node action) throws Exception {
 		NodeList nodes = action.getChildNodes();
 		if (nodes.item(0).getNodeName().equals("string")) {
 			Context ctx = this.responder.getContext();
 			String path = ctx.getCacheDir().getAbsolutePath();
-			byte[] databytes = Base64.decode(nodes.item(0).getTextContent(), Base64.DEFAULT);
-			
-			try {
-				File tempapk = new File(path + "/temp.apk");
-				tempapk.delete();
-			} finally {}
-			FileOutputStream fos = new FileOutputStream(path + "/temp.apk");
-			fos.write(databytes);
-			fos.close();
-			
-			ClassLoader l = new DexClassLoader(path + "/temp.apk",
+			ClassLoader l = new DexClassLoader(path + "/" + nodes.item(0).getTextContent(),
 								path,
 								null,
                 				ClassLoader.getSystemClassLoader());
-			
 			Object rv = l;
 			this.sendValue(rv, false);
 		} else {
