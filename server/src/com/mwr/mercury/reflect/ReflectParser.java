@@ -247,7 +247,8 @@ public class ReflectParser
 		for(int i=0; i<nodes.getLength(); i++) {
 			values.add(nodes.item(i).getTextContent());
 		}
-		String[] valuesArray = (String[])values.toArray();
+		String[] valuesArray = new String[values.size()];
+		values.toArray(valuesArray);
 		if(type.equals("string")) {
 			return valuesArray;
 		} else if(type.equals("objref")) {
@@ -316,7 +317,9 @@ public class ReflectParser
 
 	private void sendValue(Object retObj, boolean primitive)
 	{
-		if(retObj.getClass().equals(String.class)) {
+		if(retObj == null) {
+			responder.sendNull();
+		} else if(retObj.getClass().equals(String.class)) {
 			responder.sendString((String) retObj);
 		} else if(retObj.getClass().isArray() && retObj instanceof String[]) {
 			responder.sendPrimitiveArray((String[])retObj);

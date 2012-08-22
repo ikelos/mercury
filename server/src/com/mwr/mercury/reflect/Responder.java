@@ -73,6 +73,14 @@ public class Responder
 		sendResponse(primitive);
 	}
 
+	private String createNull() {
+		return "<null />";
+	}
+
+	public void sendNull() {
+		sendResponse(createNull());
+	}
+
 	private String createPrimitive(Object obj)
 	{
 		// byte, short, int, long, float, double, boolean, char
