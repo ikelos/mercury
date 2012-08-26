@@ -102,7 +102,7 @@ public class Reflector
 			if (paramClasses.length == argc) {
 				boolean correct = true;
 				for (int i = 0; i < argc; i++) {
-					correct = correct & paramClasses[i].isAssignableFrom(a[i].getClass());
+					correct = correct & isCompatible(a[i], paramClasses[i]);
 				}
 				if (correct) {
 					return con;
@@ -134,14 +134,17 @@ public class Reflector
 	public Object construct(Class<?> obj, Object[] a) throws Exception
 	{
 		Constructor<?> con = null;
-		Class<?>[] p = getParameterType(a);
-
-		if (a.length == 0) {
-			con = obj.getConstructor();
-		} else {
-			con = obj.getConstructor(p);
+		try {
+			Class<?>[] p = getParameterType(a);
+	
+			if (a.length == 0) {
+				con = obj.getConstructor();
+			} else {
+				con = obj.getConstructor(p);
+			}
+		} catch (Exception e) {
+			con = getConstructor(obj, a);
 		}
-		con = getConstructor(obj, a);
 		return con.newInstance(a);
 	}
 
@@ -174,7 +177,7 @@ public class Reflector
 
 		try {
 			Class<?>[] p = getParameterType(a);
-			Method m = getMethod(cls, methodName, p);
+			Method m = cls.getMethod(methodName, p);
 			if (m != null)
 				return m;
 		} catch (Exception e) { }
