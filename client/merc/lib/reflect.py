@@ -2,7 +2,6 @@
 # License: Refer to the README in the root directory
 #
 
-import base64
 import socket
 import common
 import logging
