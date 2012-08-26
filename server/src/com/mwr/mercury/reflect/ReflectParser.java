@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -183,8 +184,9 @@ public class ReflectParser
 				String methodName = nodes.item(1).getTextContent();
 				if(nodes.item(2).getNodeName().equals("arguments")) {
 					Object[] arguments = parseArguments(nodes.item(2));
-					boolean primitive = reflector.doesReturnPrimitive(obj, methodName, arguments);
-					Object rv = reflector.invoke(obj, methodName, arguments);
+					Method m = reflector.getMethod(obj, methodName, arguments);
+					boolean primitive = m.getReturnType().isPrimitive();
+					Object rv = reflector.invoke(obj, m, arguments);
 					this.sendValue(rv, primitive); // assuming that an object constructor never returns a primitive
 				} else {
 					throw new ParserException("No arguments in invoke");

@@ -11,7 +11,7 @@ import java.lang.reflect.Modifier;
 public class Reflector
 {
 
-	public Class resolve(String s) throws ClassNotFoundException
+	public Class<?> resolve(String s) throws ClassNotFoundException
 	{
 		return Class.forName(s);
 	}
@@ -20,7 +20,7 @@ public class Reflector
 	{
 		if(obj instanceof Class) {
 			// static field
-			return ((Class) obj).getField(name).get(null);
+			return ((Class<?>) obj).getField(name).get(null);
 		} else {
 			Field field = obj.getClass().getField(name);
 			return field.get(obj);
@@ -31,7 +31,7 @@ public class Reflector
 	{
 		if(obj instanceof Class) {
 			// static field
-			return ((Class) obj).getField(name).getType().isPrimitive();
+			return ((Class<?>) obj).getField(name).getType().isPrimitive();
 		} else {
 			Field field = obj.getClass().getField(name);
 			return field.getType().isPrimitive();
@@ -94,190 +94,156 @@ public class Reflector
 		return null;
 	}
 
-	public Object construct(Class obj, Object[] a) throws Exception
-	{
+	private Constructor<?> getConstructor(Class<?> obj, Object[] a) throws Exception {
 		int argc = a.length;
-		Class[] p = getParameterType(a);
-		Constructor con;
-		// Yes, this is ugly
-		switch(argc) {
-		case 0:  
-			con = obj.getConstructor();
-			return con.newInstance();
-		case 1:  
-			con = obj.getConstructor(p[0]);
-			return con.newInstance(a[0]);
-		case 2:  
-			con = obj.getConstructor(p[0],p[1]);
-			return con.newInstance(a[0], a[1]);
-		case 3:  
-			con = obj.getConstructor(p[0],p[1],p[2]);
-			return con.newInstance(a[0],a[1],a[2]);
-		case 4:  
-			con = obj.getConstructor(p[0],p[1],p[2],p[3]);
-			return con.newInstance(a[0],a[1],a[2],a[3]);
-		case 5:  
-			con = obj.getConstructor(p[0],p[1],p[2],p[3],p[4]);
-			return con.newInstance(a[0],a[1],a[2],a[3],a[4]);
-		case 6:  
-			con = obj.getConstructor(p[0],p[1],p[2],p[3],p[4],p[5]);
-			return con.newInstance(a[0],a[1],a[2],a[3],a[4],a[5]);
-		case 7:  
-			con = obj.getConstructor(p[0],p[1],p[2],p[3],p[4],p[5],p[6]);
-			return con.newInstance(a[0],a[1],a[2],a[3],a[4],a[5],a[6]);
-		case 8:  
-			con = obj.getConstructor(p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7]);
-			return con.newInstance(a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7]);
-		case 9:  
-			con = obj.getConstructor(p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7],p[8]);
-			return con.newInstance(a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8]);
-		case 10:  
-			con = obj.getConstructor(p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7],p[8],p[9]);
-			return con.newInstance(a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8],a[9]);
-		case 11:  
-			con = obj.getConstructor(p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7],p[8],p[9],p[10]);
-			return con.newInstance(a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8],a[9],a[10]);
-		case 12:  
-			con = obj.getConstructor(p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7],p[8],p[9],p[10],p[11]);
-			return con.newInstance(a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8],a[9],a[10],a[11]);
-		}
-		return null;
-	}
-
-	private Class[] getParameterType(Object[] arguments) throws Exception
-	{
-		Class[] ret = new Class[arguments.length];
-		int i = 0;
-		// byte, short, int, long, float, double, boolean, char
-		for(Object arg : arguments) {
-			if (arg == null) throw new Exception("Cannot return a parameter type for null.");
-			else if(arg instanceof Integer) ret[i++] = Integer.TYPE;
-			else if(arg instanceof Short) ret[i++] = Short.TYPE;
-			else if(arg instanceof Byte) ret[i++] = Byte.TYPE;
-			else if(arg instanceof Long) ret[i++] = Long.TYPE;
-			else if(arg instanceof Float) ret[i++] = Float.TYPE;
-			else if(arg instanceof Double) ret[i++] = Double.TYPE;
-			else if(arg instanceof Boolean) ret[i++] = Boolean.TYPE;
-			else if(arg instanceof Character) ret[i++] = Character.TYPE;
-			else ret[i++] = arg.getClass();
-		}
-		return ret;
-	}
-
-	public Object invoke(Object obj, String methodName, Object[] a) throws Exception
-	{
-		Class cls = null;
-		Class[] p = getParameterType(a);
-		if(obj instanceof Class && isStatic(obj, methodName, p)) {
-			// static method
-			cls = (Class)obj;
-			obj = null;
-		} else {
-			cls = obj.getClass();
-		}
-		try{
-			Method m = getMethod(cls, methodName, p);
-			switch(a.length) {
-			case 0:
-				return m.invoke(obj);
-			case 1:
-				return m.invoke(obj,a[0]);
-			case 2:
-				return m.invoke(obj,a[0], a[1]);
-			case 3:
-				return m.invoke(obj,a[0],a[1],a[2]);
-			case 4:
-				return m.invoke(obj,a[0],a[1],a[2],a[3]);
-			case 5:
-				return m.invoke(obj,a[0],a[1],a[2],a[3],a[4]);
-			case 6:
-				return m.invoke(obj,a[0],a[1],a[2],a[3],a[4],a[5]);
-			case 7:
-				return m.invoke(obj,a[0],a[1],a[2],a[3],a[4],a[5],a[6]);
-			case 8:
-				return m.invoke(obj,a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7]);
-			case 9:
-				return m.invoke(obj,a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8]);
-			case 10:
-				return m.invoke(obj,a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8],a[9]);
-			case 11:
-				return m.invoke(obj,a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8],a[9],a[10]);
-			case 12:
-				return m.invoke(obj,a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8],a[9],a[10],a[11]);
+		Constructor<?>[] cons = obj.getConstructors();
+		for (Constructor<?> con: cons) {
+			Class<?>[] paramClasses = con.getParameterTypes();
+			if (paramClasses.length == argc) {
+				boolean correct = true;
+				for (int i = 0; i < argc; i++) {
+					correct = correct & paramClasses[i].isAssignableFrom(a[i].getClass());
+				}
+				if (correct) {
+					return con;
+				}
 			}
-			return null;
+		}
+		throw new NoSuchMethodException();
+	}
+
+	private Class<?>[] getParameterType(Object[] arguments) throws Exception {
+        Class<?>[] ret = new Class[arguments.length];
+        int i = 0;
+        // byte, short, int, long, float, double, boolean, char
+        for(Object arg : arguments) {
+            if (arg == null) throw new Exception("Cannot return a parameter type for null.");
+            else if(arg instanceof Integer) ret[i++] = Integer.TYPE;
+            else if(arg instanceof Short) ret[i++] = Short.TYPE;
+            else if(arg instanceof Byte) ret[i++] = Byte.TYPE;
+            else if(arg instanceof Long) ret[i++] = Long.TYPE;
+            else if(arg instanceof Float) ret[i++] = Float.TYPE;
+            else if(arg instanceof Double) ret[i++] = Double.TYPE;
+            else if(arg instanceof Boolean) ret[i++] = Boolean.TYPE;
+            else if(arg instanceof Character) ret[i++] = Character.TYPE;
+            else ret[i++] = arg.getClass();
+        }
+        return ret;
+	}
+
+	public Object construct(Class<?> obj, Object[] a) throws Exception
+	{
+		Constructor<?> con = null;
+		Class<?>[] p = getParameterType(a);
+
+		if (a.length == 0) {
+			con = obj.getConstructor();
+		} else {
+			con = obj.getConstructor(p);
+		}
+		con = getConstructor(obj, a);
+		return con.newInstance(a);
+	}
+
+	public Method getMethod(Object obj, String methodName, Object[] a) throws NoSuchMethodException {
+		Method m = null;
+		// Check for static methods
+		if (obj instanceof Class) {
+			try {
+				m = lookupMethod((Class<?>)obj, methodName, a);
+				if (! Modifier.isStatic(m.getModifiers())) {
+					m = null;
+				}
+			} catch (NoSuchMethodException e) {
+				m = null;
+			}
+		}
+
+		// If we're not a static method, carry on as normal
+		if (m == null)
+			m = lookupMethod(obj.getClass(), methodName, a);
+
+		if (m == null)
+			throw new NoSuchMethodException();
+
+		return m;
+	}
+
+	private Method lookupMethod(Class<?> cls, String methodName, Object[] a) throws NoSuchMethodException {
+		int argc = a.length;
+
+		try {
+			Class<?>[] p = getParameterType(a);
+			Method m = getMethod(cls, methodName, p);
+			if (m != null)
+				return m;
+		} catch (Exception e) { }
+
+		Method[] methods = cls.getMethods();
+
+		for (Method method: methods) {
+			if (methodName.equals(method.getName())) {
+				Class<?>[] paramClasses = method.getParameterTypes();
+				if (paramClasses.length == argc) {
+					boolean correct = true;
+					for (int i = 0; i < argc; i++) {
+						correct = correct & isCompatible(a[i], paramClasses[i]);
+					}
+					if (correct) {
+						return method;
+					}
+				}
+			}
+		}
+		throw new NoSuchMethodException();
+	}
+
+	private boolean isCompatible(Object object, Class<?> paramType) {
+	    if(object == null){
+	        return !paramType.isPrimitive();
+	    }
+
+	    if(paramType.isInstance(object)){
+	        return true;
+	    }
+
+	    if(paramType.isPrimitive()){
+			try {
+				return isWrapperTypeOf(object.getClass(), paramType);
+			} catch (Exception e) {
+				return false;
+			}
+		}
+	    return false;
+
+	}
+
+	private boolean isWrapperTypeOf(Class<?> candidate, Class<?> primitiveType) throws Exception {
+		try {
+			return !candidate.isPrimitive() && candidate.getDeclaredField("TYPE").get(null).equals(primitiveType);
+		} catch(final NoSuchFieldException e) {
+			return false;
+		} catch(final Exception e) {
+			throw e;
+		}
+	}
+
+	public Object invoke(Object obj, Method m, Object[] a) throws Exception
+	{
+		try{
+			if (a.length == 0) {
+				return m.invoke(obj, (Object[])null);
+			}
+			return m.invoke(obj, a);
 		} catch (InvocationTargetException e) {
 			throw (Exception) e.getCause();
 		}
 	}
 
-	public boolean doesReturnPrimitive(Object obj, String methodName,
-			Object[] arguments) throws Exception
-	{
-		Class cls = null;
-		Class[] p = getParameterType(arguments);
-		if(obj instanceof Class && isStatic(obj, methodName, p)) {
-			// static method
-			cls = (Class)obj;
-			obj = null;
-		} else {
-			cls = obj.getClass();
-		}
-		Method m = getMethod(cls, methodName, p);
-		return m.getReturnType().isPrimitive();
-	}
-
-	private boolean isStatic(Object obj, String methodName, Class[] arguments)
-	{
-		Method m = null;
-		try {
-			m = getMethod((Class) obj, methodName, arguments);
-		} catch(NoSuchMethodException e) {
-			return false;
-		}
-		if(Modifier.isStatic(m.getModifiers()))
-			return true;
-		return false;
-	}
-
-	private Method getMethod(Class c, String m, Class[] a) throws SecurityException, NoSuchMethodException
-	{
-		switch(a.length) {
-		case 0:
-			return c.getMethod(m, (Class[]) null);
-		case 1:
-			return c.getMethod(m,a[0]);
-		case 2:
-			return c.getMethod(m,a[0], a[1]);
-		case 3:
-			return c.getMethod(m,a[0],a[1],a[2]);
-		case 4:
-			return c.getMethod(m,a[0],a[1],a[2],a[3]);
-		case 5:
-			return c.getMethod(m,a[0],a[1],a[2],a[3],a[4]);
-		case 6:
-			return c.getMethod(m,a[0],a[1],a[2],a[3],a[4],a[5]);
-		case 7:
-			return c.getMethod(m,a[0],a[1],a[2],a[3],a[4],a[5],a[6]);
-		case 8:
-			return c.getMethod(m,a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7]);
-		case 9:
-			return c.getMethod(m,a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8]);
-		case 10:
-			return c.getMethod(m,a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8],a[9]);
-		case 11:
-			return c.getMethod(m,a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8],a[9],a[10]);
-		case 12:
-			return c.getMethod(m,a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8],a[9],a[10],a[11]);
-		}
-		return null;
-	}
-
 	public void setProperty(Object obj, String name, Object argument) throws IllegalArgumentException, SecurityException, IllegalAccessException, NoSuchFieldException
 	{
 		if(obj instanceof Class) {
-			// static field
-			((Class) obj).getField(name).set(null, argument);
+			((Class<?>) obj).getField(name).set(null, argument);
 		} else {
 			Field field = obj.getClass().getField(name);
 			field.set(obj, argument);
