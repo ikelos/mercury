@@ -2,8 +2,6 @@
 
 package com.mwr.mercury.reflect;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.Method;
@@ -21,12 +19,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import android.content.Context;
-import android.util.Base64;
-
 import com.mwr.mercury.Session;
-
-import dalvik.system.DexClassLoader;
 
 public class ReflectParser
 {
@@ -101,8 +94,6 @@ public class ReflectParser
 			return parseInvoke(node);
 		} else if(name.equals("getctx")) {
 			return parseGetCtx(node);
-		} else if(name.equals("dexload")) {
-			return parseDexLoad(node);
 		} else {
 			throw new ParserException("action '"+name+"' not implemented.");
 		}
@@ -112,23 +103,6 @@ public class ReflectParser
 	{
 		Object rv = this.responder.getContext();
 		this.sendValue(rv, false);
-		return true;
-	}
-
-	private boolean parseDexLoad(Node action) throws Exception {
-		NodeList nodes = action.getChildNodes();
-		if (nodes.item(0).getNodeName().equals("string")) {
-			Context ctx = this.responder.getContext();
-			String path = ctx.getCacheDir().getAbsolutePath();
-			ClassLoader l = new DexClassLoader(path + "/" + nodes.item(0).getTextContent(),
-								path,
-								null,
-                				ClassLoader.getSystemClassLoader());
-			Object rv = l;
-			this.sendValue(rv, false);
-		} else {
-			throw new ParserException("No argument classdata in loadclass");
-		}
 		return true;
 	}
 	
@@ -163,7 +137,7 @@ public class ReflectParser
 			Object obj = objStore.get(objRef);
 			if(nodes.item(1).getNodeName().equals("arguments")) {
 				Object[] arguments = parseArguments(nodes.item(1));
-				Object rv = reflector.construct((Class)obj, arguments);
+				Object rv = reflector.construct((Class<?>)obj, arguments);
 				this.sendValue(rv, false); // assuming that an object constructor never returns a primitive
 			} else {
 				throw new ParserException("No arguments in construct");
@@ -339,7 +313,7 @@ public class ReflectParser
 			Node node = nodes.item(i);
 			if(node.getNodeName().equals("string")) {
 				String s = parseString(node);
-				Class clazz = reflector.resolve(s);
+				Class<?> clazz = reflector.resolve(s);
 				String objRef = objStore.add(clazz);
 				responder.sendObjRef(objRef);
 				return true;

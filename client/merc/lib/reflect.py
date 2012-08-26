@@ -134,7 +134,8 @@ class Reflect(object):
             dataarr = [ ReflectedPrimitive("byte", (ord(i) if (ord(i) < 128) else ord(i) - 0x100), reflect = self) for i in data]
             fos.write(dataarr)
             fos.close()
-        l = self.dexload(filename)
+        classloader = self.resolve('java.lang.ClassLoader')
+        l = self.new('dalvik.system.DexClassLoader', path + "/" + filename, path, None, classloader.getSystemClassLoader())
         return l
 
 def ReflectedTypeFactory(obj, reflectobj):
