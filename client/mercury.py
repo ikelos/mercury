@@ -81,7 +81,7 @@ Use adb forward tcp:31415 tcp:31415 when using an emulator or usb-connected devi
         try:
             # Split arguments using shlex - this means that parameters with spaces can be used - escape " characters inside with \
             splitargs = parser.parse_args(shlex.split(args))
-            
+
             if not splitargs:
                 return
 
@@ -89,10 +89,9 @@ Use adb forward tcp:31415 tcp:31415 when using an emulator or usb-connected devi
             sessionip = splitargs.ip
 
             # Get session port
+            sessionport = 31415
             if (splitargs.port):
                 sessionport = int(splitargs.port)
-            else:
-                sessionport = 31415
 
             # Create new session object - display success/failure with session id
             newsession = Session(splitargs.ip, sessionport, "bind")
