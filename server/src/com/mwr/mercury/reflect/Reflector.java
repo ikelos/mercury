@@ -94,6 +94,23 @@ public class Reflector
 		return null;
 	}
 
+	public Object construct(Class<?> obj, Object[] a) throws Exception
+	{
+		Constructor<?> con = null;
+		try {
+			Class<?>[] p = getParameterType(a);
+
+			if (a.length == 0) {
+				con = obj.getConstructor((Class<?>)null);
+			} else {
+				con = obj.getConstructor(p);
+			}
+		} catch (Exception e) {
+			con = getConstructor(obj, a);
+		}
+		return con.newInstance(a);
+	}
+
 	private Constructor<?> getConstructor(Class<?> obj, Object[] a) throws Exception {
 		int argc = a.length;
 		Constructor<?>[] cons = obj.getConstructors();
@@ -112,59 +129,52 @@ public class Reflector
 		throw new NoSuchMethodException();
 	}
 
-	private Class<?>[] getParameterType(Object[] arguments) throws Exception {
-        Class<?>[] ret = new Class[arguments.length];
-        int i = 0;
-        // byte, short, int, long, float, double, boolean, char
-        for(Object arg : arguments) {
-            if (arg == null) throw new Exception("Cannot return a parameter type for null.");
-            else if(arg instanceof Integer) ret[i++] = Integer.TYPE;
-            else if(arg instanceof Short) ret[i++] = Short.TYPE;
-            else if(arg instanceof Byte) ret[i++] = Byte.TYPE;
-            else if(arg instanceof Long) ret[i++] = Long.TYPE;
-            else if(arg instanceof Float) ret[i++] = Float.TYPE;
-            else if(arg instanceof Double) ret[i++] = Double.TYPE;
-            else if(arg instanceof Boolean) ret[i++] = Boolean.TYPE;
-            else if(arg instanceof Character) ret[i++] = Character.TYPE;
-            else ret[i++] = arg.getClass();
-        }
-        return ret;
-	}
-
-	public Object construct(Class<?> obj, Object[] a) throws Exception
+	private Class<?>[] getParameterType(Object[] arguments)
 	{
-		Constructor<?> con = null;
-		try {
-			Class<?>[] p = getParameterType(a);
-	
-			if (a.length == 0) {
-				con = obj.getConstructor();
-			} else {
-				con = obj.getConstructor(p);
-			}
-		} catch (Exception e) {
-			con = getConstructor(obj, a);
+        Class<?>[] ret = new Class[arguments.length];
+		int i = 0;
+		// byte, short, int, long, float, double, boolean, char
+		for(Object arg : arguments) {
+            if (arg == null) ret[i++] = null;
+			else if(arg instanceof Integer) ret[i++] = Integer.TYPE;
+			else if(arg instanceof Short) ret[i++] = Short.TYPE;
+			else if(arg instanceof Byte) ret[i++] = Byte.TYPE;
+			else if(arg instanceof Long) ret[i++] = Long.TYPE;
+			else if(arg instanceof Float) ret[i++] = Float.TYPE;
+			else if(arg instanceof Double) ret[i++] = Double.TYPE;
+			else if(arg instanceof Boolean) ret[i++] = Boolean.TYPE;
+			else if(arg instanceof Character) ret[i++] = Character.TYPE;
+			else ret[i++] = arg.getClass();
 		}
-		return con.newInstance(a);
+		return ret;
 	}
 
 	public Method getMethod(Object obj, String methodName, Object[] a) throws NoSuchMethodException {
+		Class<?>[] p = getParameterType(a);
 		Method m = null;
-		// Check for static methods
+
 		if (obj instanceof Class) {
 			try {
-				m = lookupMethod((Class<?>)obj, methodName, a);
-				if (! Modifier.isStatic(m.getModifiers())) {
-					m = null;
-				}
-			} catch (NoSuchMethodException e) {
-				m = null;
-			}
+				m = ((Class<?>)obj).getMethod(methodName, p);
+			} catch (NoSuchMethodException e) { }
 		}
 
-		// If we're not a static method, carry on as normal
-		if (m == null)
-			m = lookupMethod(obj.getClass(), methodName, a);
+		if (m == null) {
+			try {
+				m = obj.getClass().getMethod(methodName, p);
+			} catch (NoSuchMethodException e) { }
+		}
+
+		if (m == null && obj instanceof Class) {
+			m = lookupMethod((Class<?>)obj, methodName, a);
+			if (! Modifier.isStatic(m.getModifiers())) {
+				m = null;
+			}
+
+			if (m == null) {
+				m = lookupMethod(obj.getClass(), methodName, a);
+			}
+		}
 
 		if (m == null)
 			throw new NoSuchMethodException();
@@ -173,23 +183,15 @@ public class Reflector
 	}
 
 	private Method lookupMethod(Class<?> cls, String methodName, Object[] a) throws NoSuchMethodException {
-		int argc = a.length;
-
-		try {
-			Class<?>[] p = getParameterType(a);
-			Method m = cls.getMethod(methodName, p);
-			if (m != null)
-				return m;
-		} catch (Exception e) { }
-
+		int argp = a.length;
 		Method[] methods = cls.getMethods();
 
 		for (Method method: methods) {
 			if (methodName.equals(method.getName())) {
 				Class<?>[] paramClasses = method.getParameterTypes();
-				if (paramClasses.length == argc) {
+				if (paramClasses.length == argp) {
 					boolean correct = true;
-					for (int i = 0; i < argc; i++) {
+					for (int i = 0; i < argp; i++) {
 						correct = correct & isCompatible(a[i], paramClasses[i]);
 					}
 					if (correct) {
@@ -198,7 +200,7 @@ public class Reflector
 				}
 			}
 		}
-		throw new NoSuchMethodException();
+		return null;
 	}
 
 	private boolean isCompatible(Object object, Class<?> paramType) {
