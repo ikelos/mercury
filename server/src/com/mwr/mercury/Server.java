@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 
 import android.content.Context;
+import android.os.Debug;
 import android.util.Log;
 
 public class Server extends Thread
