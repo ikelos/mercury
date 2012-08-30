@@ -212,8 +212,7 @@ public class ReflectParser
 		for(int i=0; i<nodes.getLength(); i++) {
 			values.add(nodes.item(i).getTextContent());
 		}
-		String[] valuesArray = new String[values.size()];
-		values.toArray(valuesArray);
+		String[] valuesArray = (String[])values.toArray();
 		if(type.equals("string")) {
 			return valuesArray;
 		} else if(type.equals("objref")) {
