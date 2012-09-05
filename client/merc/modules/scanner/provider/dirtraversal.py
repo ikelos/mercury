@@ -12,10 +12,10 @@ Updated by: Tyrone - MWR Labs"""
         self.path = ["scanner", "provider"]
 
     def execute(self, session, _arg):
-        
+
         # Create file to be traversed to
         session.executeCommand("shell", "executeSingleCommand", {"args":"echo testing > /data/data/com.mwr.mercury/traverse"}).getPaddedErrorOrData()
-        
+
         # Get all authorities
         info = session.executeCommand("provider", "info", None).getPaddedErrorOrData()
         auths = re.findall('(?<=Authority: ).+', info)
@@ -23,8 +23,8 @@ Updated by: Tyrone - MWR Labs"""
         vuln = []
         for a in auths:
             print("Checking " + a)
-            request = {'Uri': "content://" + a + "/../../../../../../../../../../../../../../../../data/data/com.mwr.mercury/traverse"}
-            
+            request = {'Uri': "content://" + a + "/../../../../../../../../../../../../../../../../etc/hosts"}
+
             response = session.executeCommand("provider", "read", request)
 
             if not ((response.isError() or len(response.data) == 0)):
@@ -39,10 +39,10 @@ Updated by: Tyrone - MWR Labs"""
                 print v
         else:
             print session.color.green("No vulnerable providers found!")
-            
+
 
         print ""
-        
+
         # Remove traversal file
         session.executeCommand("shell", "executeSingleCommand", {"args":"rm /data/data/com.mwr.mercury/traverse"}).getPaddedErrorOrData()
 
