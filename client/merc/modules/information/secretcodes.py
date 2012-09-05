@@ -1,6 +1,5 @@
 
 import os
-import base64
 
 from merc.lib.modules import Module
 from merc.lib.reflect import Reflect

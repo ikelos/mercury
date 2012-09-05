@@ -38,6 +38,13 @@ For usage instructions on a command, type <command> -h or <command> --help
         # Leave immediately, do not pass go, do not collect $200
         sys.exit(0)
 
+    def do_debug(self, _args):
+        """
+'debug launches a pdb debugging shell'
+        """
+        import pdb
+        pdb.set_trace()
+
     ## Override methods in Cmd object ##
     def preloop(self):
         """
@@ -89,8 +96,8 @@ Called on an input line when the command prefix is not recognized.
             return -1
         else:
             print "Command not found\n"
-        
-        
+
+
 class BaseArgumentParser(object):
     """
 Class to replace "argparse.ArgumentParser" in order to enable user to save
@@ -107,14 +114,14 @@ add_argument(dest, ..., name=value, ...)
 add_argument(option_string, option_string, ..., name=value, ...)
         """
         self.parser.add_argument(*args, **kwargs)
-        
+
     def setOutputToFileOption(self):
         """
 Enable the option to output the result of this command to a file
         """
         self.outputToFileOption = True
 
-    def parse_args(self, args=None):
+    def parse_args(self, args = None):
         """
 Command line argument parsing methods
         """
@@ -122,7 +129,7 @@ Command line argument parsing methods
         # Adds an argument to output to a file
         if self.outputToFileOption:
             self.parser.add_argument('--output', '-o', metavar = '<file>')
-        
+
         # If an argument with a help indicator comes in then display usage
         if (("-h" in args) or ("--help" in args)):
             print ""
@@ -132,15 +139,15 @@ Command line argument parsing methods
 
             try:
                 arguments = self.parser.parse_args(args)
-                
+
                 # If the (--output, -o) argument is set, then save the output to a specified file
                 if self.outputToFileOption:
                     if arguments.output:
                         sys.stdout = FileWriter(arguments.output)
-                    
+
             except:
                 arguments = None
             finally:
                 return arguments
-    
+
 
